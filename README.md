@@ -8,18 +8,3 @@ Output:
 修正线性单元 (ReLU, Rectified Linear Unit): ReLU is a type of activation function commonly used in deep learning. It introduces non-linearity by returning the input if it's positive and zero otherwise. "修正" (Rectified) indicates the way it handles negative values.
 饱和 (Saturation): This term is used to describe the behavior of an activation function when the input values are at extreme ends, causing the function to produce very small gradients. It's particularly relevant in the context of activation functions like the sigmoid and tanh when their outputs saturate (approach 0 or 1) for certain inputs.
 These terms are essential when discussing and understanding activation functions in the context of neural networks and deep learning, especially in the context of their challenges and applications.
-
-To begin using:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/georgia-tech-db/eva.git
-2. Install the dependencies:
-    sh script/install/before_install.sh
-    export PATH="$HOME/miniconda/bin:$PATH"
-    sh script/install/install.sh
-3. Activate the virtual environment:
-    source venv/bin/activate  # On Linux/Mac
-    venv\Scripts\activate      # On Windows
-4. Install python dependencies:
-    pip install -r requirements.txt
-
