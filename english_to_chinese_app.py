@@ -1,8 +1,7 @@
-import evadb
 import warnings
 import os
+import sqlite3
 
-cursor = evadb.connect().cursor()
 warnings.filterwarnings("ignore")
 
 params = {
@@ -10,20 +9,44 @@ params = {
     "password": "password",
     "host": "localhost",
     "port": "5432",
-    "database": "chinese",
+    "database": "evadb.db",
 }
 
-query = f"CREATE DATABASE IF NOT EXISTS pg_db WITH ENGINE = 'postgres', PARAMETERS = {params};"
-cursor.query(query).df()
+query = f"CREATE DATABASE sqlite_data WITH ENGINE = 'sqlite', PARAMETERS = {params};"
+con = sqlite3.connect("evadb.db")
+cur = con.cursor()
 
-cursor.query("""USE pg_db {CREATE TABLE IF NOT EXISTS english_chinese (english TEXT, chinese TEXT)}""").df()
+cur.execute("CREATE TABLE IF NOT EXISTS english_chinese(english TEXT, chinese TEXT)")
 
-cursor.query("""
-USE pg_db {
+cur.execute("""
   COPY english_chinese(english, chinese)
   FROM 'C:\\Users\Carolyn Yuan\Documents\GitHub\English_To_Chinese_App\output.csv'
   DELIMITER ',' CSV HEADER}
-""").df()
+""")
+con.commit()
+
+# can use executemany with ? to avoid SQL injection attacks for inserting multiple rows
+# data = [
+#     ("Monty Python Live at the Hollywood Bowl", 1982, 7.9),
+#     ("Monty Python's The Meaning of Life", 1983, 7.5),
+#     ("Monty Python's Life of Brian", 1979, 8.0),
+# ]
+# cur.executemany("INSERT INTO movie VALUES(?, ?, ?)", data) 
+
+#-------------------- TESTING --------------------#
+res = cur.execute("SELECT english FROM english_chinese")
+res.fetchall()
+
+for row in cur.execute("SELECT english, chinese FROM english_chinese"):
+    print(row)
+
+con.close()
+new_con = sqlite3.connect("evadb.db")
+new_cur = new_con.cursor()
+res = new_cur.execute("SELECT english, chinese FROM english_chinese")
+english, chinese = res.fetchone()
+print(f'The term {english!r} is {chinese} in mandarin.')
+#-------------------- TESTING --------------------#
 
 # replace OpenAI key with your own
 
@@ -38,9 +61,9 @@ while ready:
     else:
         # Generate response with chatgpt udf
         print("⏳ Generating response (may take a while)...")
-        query = "USE pg_db {SELECT chinese FROM pg_db.chinese WHERE english = ", question, ";}"
-        chinese = cursor.query(query).df()
+        res = "SELECT chinese FROM sqlite_master WHERE english = ", question, ";}"
+        chinese = res.fetchone()
         if len(chinese) == 1:
             prompt = "Identify and suggest 3 specialized terminology and technical terms commonly used in the subject matter of"
-            response = cursor.table("Response").select(f"ChatGPT({prompt}, {chinese})").df()["chatgpt.response"][0]
+            response = cur.table("Response").select(f"ChatGPT({prompt}, {chinese})")["chatgpt.response"][0]
         print("✅ Translation and background:", response)
