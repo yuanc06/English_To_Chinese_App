@@ -1,6 +1,7 @@
 import warnings
 import os
 import sqlite3
+import csv
 
 warnings.filterwarnings("ignore")
 
@@ -18,20 +19,13 @@ cur = con.cursor()
 
 cur.execute("CREATE TABLE IF NOT EXISTS english_chinese(english TEXT, chinese TEXT)")
 
-cur.execute("""
-  COPY english_chinese(english, chinese)
-  FROM 'C:\\Users\Carolyn Yuan\Documents\GitHub\English_To_Chinese_App\output.csv'
-  DELIMITER ',' CSV HEADER}
-""")
+csv_file_path = 'C:\\Users\\Carolyn Yuan\\Documents\\GitHub\\English_To_Chinese_App\\output.csv'
+with open(csv_file_path, 'r', newline='', encoding='utf-8') as csvfile:
+    csvreader = csv.reader(csvfile, delimiter=',')
+    next(csvreader)  # Skip header row if it exists
+    for row in csvreader:
+        cur.execute('INSERT INTO english_chinese (english, chinese) VALUES (?, ?)', (row[0], row[1]))
 con.commit()
-
-# can use executemany with ? to avoid SQL injection attacks for inserting multiple rows
-# data = [
-#     ("Monty Python Live at the Hollywood Bowl", 1982, 7.9),
-#     ("Monty Python's The Meaning of Life", 1983, 7.5),
-#     ("Monty Python's Life of Brian", 1979, 8.0),
-# ]
-# cur.executemany("INSERT INTO movie VALUES(?, ?, ?)", data) 
 
 #-------------------- TESTING --------------------#
 res = cur.execute("SELECT english FROM english_chinese")
